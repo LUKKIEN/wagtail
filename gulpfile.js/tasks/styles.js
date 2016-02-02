@@ -1,6 +1,5 @@
 var gulp = require('gulp');
 var sass = require('gulp-sass');
-var cssnano = require('gulp-cssnano');
 var config = require('../config');
 var autoprefixer = require('gulp-autoprefixer');
 var simpleCopyTask = require('../lib/simplyCopy');
@@ -31,9 +30,8 @@ gulp.task('styles:sass', function () {
         .pipe(sass({
             errLogToConsole: true,
             includePaths: includePaths,
-            outputStyle: 'compressed'
-        }))
-        .pipe(cssnano())
+            outputStyle: 'expanded'
+        }).on('error', sass.logError))
         .pipe(autoprefixer({
             browsers: ['last 3 versions', 'not ie <= 8'],
             cascade: false
