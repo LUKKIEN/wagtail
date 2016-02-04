@@ -1,5 +1,7 @@
 var gulp = require('gulp');
 var sass = require('gulp-sass');
+var cssnano = require('gulp-cssnano');
+var sourcemaps = require('gulp-sourcemaps');
 var config = require('../config');
 var autoprefixer = require('gulp-autoprefixer');
 var simpleCopyTask = require('../lib/simplyCopy');
@@ -26,25 +28,42 @@ gulp.task('styles:sass', function () {
     // its own Sass files that need to be compiled.
     var sources = flatten(config.apps.map(function(app) { return app.scssSources(); }));
 
+    var sassConfig = {
+        errLogToConsole: true,
+        includePaths: includePaths,
+        outputStyle: 'compressed'
+    };
+    var autoprefixerConfig = {
+        browsers: ['last 3 versions', 'not ie <= 8'],
+        cascade: false
+    };
+
+    var destCallback = function(file) {
+        // e.g. wagtailadmin/scss/core.scss -> wagtailadmin/css/core.css
+        // Changing the suffix is done by Sass automatically
+        return normalizePath(file.base)
+            .replace(
+                '/' + config.srcDir + '/',
+                '/' + config.destDir + '/'
+            )
+            .replace('/scss/', '/css/');
+    };
+
+    if (process.env.NODE_ENV === 'production') {
+        return gulp.src(sources)
+            .pipe(sass(sassConfig))
+            .pipe(cssnano())
+            .pipe(autoprefixer(autoprefixerConfig))
+            .pipe(gulp.dest(destCallback))
+            .on('error', gutil.log);
+    }
+
     return gulp.src(sources)
-        .pipe(sass({
-            errLogToConsole: true,
-            includePaths: includePaths,
-            outputStyle: 'expanded'
-        }).on('error', sass.logError))
-        .pipe(autoprefixer({
-            browsers: ['last 3 versions', 'not ie <= 8'],
-            cascade: false
-        }))
-        .pipe(gulp.dest(function(file) {
-            // e.g. wagtailadmin/scss/core.scss -> wagtailadmin/css/core.css
-            // Changing the suffix is done by Sass automatically
-            return normalizePath(file.base)
-                .replace(
-                    '/' + config.srcDir + '/',
-                    '/' + config.destDir + '/'
-                )
-                .replace('/scss/', '/css/');
-        }))
+        .pipe(sourcemaps.init())
+        .pipe(sass(sassConfig))
+        .pipe(cssnano())
+        .pipe(autoprefixer(autoprefixerConfig))
+        .pipe(sourcemaps.write())
+        .pipe(gulp.dest(destCallback))
         .on('error', gutil.log);
 });
