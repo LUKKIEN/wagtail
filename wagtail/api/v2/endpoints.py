@@ -61,7 +61,7 @@ class BaseAPIEndpoint(GenericViewSet):
         super(BaseAPIEndpoint, self).__init__(*args, **kwargs)
 
         # seen_types is a mapping of type name strings (format: "app_label.ModelName")
-        # to model classes. When an object is serialised in the API, it's model
+        # to model classes. When an object is serialised in the API, its model
         # is added to this mapping. This is used by the Admin API which appends a
         # summary of the used types to the response.
         self.seen_types = OrderedDict()
