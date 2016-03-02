@@ -1,7 +1,13 @@
-from wagtail.api.shared.utils import BadRequestError, page_models_from_string, filter_page_type
+from wagtail.api.v2.utils import BadRequestError, page_models_from_string, filter_page_type
 from wagtail.api.v2.endpoints import PagesAPIEndpoint, ImagesAPIEndpoint, DocumentsAPIEndpoint
-
 from django.db.models import Q
+
+from wagtail.api.v2.filters import (
+    FieldsFilter, OrderingFilter, SearchFilter,
+    ChildOfFilter, DescendantOfFilter
+)
+from wagtail.wagtailcore.models import Page
+from .serializers import AdminPageSerializer, AdminImageSerializer
 
 
 class HasChildrenFilter(ChildOfFilter):
@@ -22,7 +28,6 @@ class HasChildrenFilter(ChildOfFilter):
             else:
                 return queryset.filter(Q(numchild=0))
         return queryset
-
 
 
 class PagesAdminAPIEndpoint(PagesAPIEndpoint):
@@ -83,7 +88,17 @@ class PagesAdminAPIEndpoint(PagesAPIEndpoint):
 
 
 class ImagesAdminAPIEndpoint(ImagesAPIEndpoint):
-    pass
+    base_serializer_class = AdminImageSerializer
+
+    extra_body_fields = ImagesAPIEndpoint.extra_body_fields + [
+        'thumbnail',
+    ]
+
+    default_fields = ImagesAPIEndpoint.default_fields + [
+        'width',
+        'height',
+        'thumbnail',
+    ]
 
 
 class DocumentsAdminAPIEndpoint(DocumentsAPIEndpoint):
