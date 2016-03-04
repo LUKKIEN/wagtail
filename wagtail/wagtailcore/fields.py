@@ -4,6 +4,7 @@ import json
 
 from django.db import models
 from django import forms
+from django.forms.widgets import Widget
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.six import with_metaclass, string_types
 
@@ -129,3 +130,50 @@ class StreamField(with_metaclass(models.SubfieldBase, models.Field)):
         errors = super(StreamField, self).check(**kwargs)
         errors.extend(self.stream_block.check(field=self, **kwargs))
         return errors
+
+
+class SimpleWidget(Widget):
+    def render(self, name, value, attrs=None):
+        return super(SimpleWidget, self).render(name, value, attrs)
+
+
+class JSONTextArea(SimpleWidget, forms.TextInput):
+    def get_panel(self):
+        from wagtail.wagtailadmin.edit_handlers import JSONFieldPanel
+        return JSONFieldPanel
+
+    def render(self, name, value, attrs={}):
+        if value is None:
+            translated_value = None
+        else:
+            translated_value = value
+
+        attrs['data-json-text-field'] = json.dumps(name)
+        attrs['data-json-text-value'] = translated_value
+
+        try:
+            json_value = json.loads(translated_value)
+        except (ValueError):
+            json_value = {}
+            # raise ValueError('Couldnt encode value as json')
+
+        return super(SimpleWidget, self).render(name, json.dumps(json_value), attrs)
+
+    def value_from_datadict(self, data, files, name):
+        original_value = super(JSONTextArea, self).value_from_datadict(data, files, name)
+        if original_value is None:
+            return None
+
+        try:
+            json_value = json.loads(original_value)
+        except (ValueError):
+            raise ValueError("Cannot handle %r as JSON" % (original_value))
+
+        return json.dumps(json_value)
+
+
+class JSONTextField(models.TextField):
+    def formfield(self, **kwargs):
+        defaults = {'widget': JSONTextArea}
+        defaults.update(kwargs)
+        return super(JSONTextField, self).formfield(**defaults)

@@ -772,3 +772,18 @@ class StreamFieldPanel(object):
             'field_name': self.field_name,
             'block_def': model._meta.get_field(self.field_name).stream_block
         })
+
+
+class BaseJSONFieldPanel(BaseFieldPanel):
+    pass
+
+
+class JSONFieldPanel(object):
+    def __init__(self, field_name):
+        self.field_name = field_name
+
+    def bind_to_model(self, model):
+        return type(str('_JSONFieldPanel'), (BaseJSONFieldPanel,), {
+            'model': model,
+            'field_name': self.field_name,
+        })
