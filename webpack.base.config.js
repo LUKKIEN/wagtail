@@ -3,20 +3,24 @@ var path = require('path');
 var glob = require('glob').sync;
 var webpack = require('webpack');
 
-var COMMON_PATH = './wagtail/wagtailadmin/static/wagtailadmin/js/common.js';
+var STATIC = path.join('client', 'static');
+var SRC = path.join('client', 'src');
+var COMMON_PATH = path.join('.', STATIC, 'wagtailadmin', 'js', 'common.js');
+var ENTRY_DIR = path.resolve('.', SRC, '**', '*.entry.js');
+var CLIENT_DIR = path.resolve(__dirname, SRC);
 
 
 function appName(filename) {
-  return _(filename)
+  return filename
     .split(path.sep)
-    .get(2);
+    .slice(-2, -1).pop();
 }
 
 
 function entryPoint(filename) {
   var name = appName(filename);
   var entryName = path.basename(filename, '.entry.js');
-  var outputPath = path.join('wagtail', name, 'static', name, 'js', entryName);
+  var outputPath = path.join(STATIC, name, 'js', entryName);
   return [outputPath, filename];
 }
 
@@ -29,11 +33,11 @@ function entryPoints(paths) {
 }
 
 
-module.exports = function exports() {
-  var CLIENT_DIR = path.resolve(__dirname, 'client', 'src');
 
+
+module.exports = function exports() {
   return {
-    entry: entryPoints('./wagtail/**/static_src/**/app/*.entry.js'),
+    entry: entryPoints(ENTRY_DIR),
     resolve: {
       alias: {
         config: path.resolve(CLIENT_DIR, 'config'),
