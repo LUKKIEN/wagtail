@@ -3,3 +3,52 @@
 .c-json-text-field {
     display: block;
 }
+
+
+
+.RichEditor-styleButton {
+    padding: .5em;
+    background: #eee;
+    display: inline-block;
+    border-radius: .25rem;
+    margin-right: .25rem;
+}
+
+.RichEditor-activeButton {
+    background: #666;
+    color: #fff;
+}
+
+
+.RichEditor-controls {
+    margin-bottom: .5rem;
+}
+
+
+.RichEditor-link {
+    background: #E7FCFF;
+}
+
+
+.Modal {
+    position: fixed;
+    z-index: 999;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.Modal-content {
+    padding: 1em;
+    background: #fff;
+    max-width: 500px;
+}
+
+.Modal-actions {
+    padding-top: 1rem;
+}
