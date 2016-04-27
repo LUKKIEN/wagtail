@@ -58,24 +58,12 @@ export default class JsonTextField extends Component {
   }
 
   _handleKeyCommand(command) {
-        ContentState.createFromBlockArray(blocks)
-      );
-    } else {
-      this.state.editorState = EditorState.createEmpty();
-    }
-
-    this.onChange = (editorState) => this.setState({editorState});
-    this.handleKeyCommand = this.handleKeyCommand.bind(this);
-  }
-
-  handleKeyCommand(command) {
     const {editorState} = this.state;
     const newState = RichUtils.handleKeyCommand(editorState, command);
 
     if (newState) {
       this.onChange(newState);
       setTimeout(() => this.refs.editor.focus(), 0);
-
       return true;
     }
 
@@ -117,7 +105,6 @@ export default class JsonTextField extends Component {
     }
   }
 
-
   render() {
     const {editorState} = this.state;
 
@@ -152,11 +139,6 @@ export default class JsonTextField extends Component {
           onTab={this.handleKeyCommand}
           handleKeyCommand={this.handleKeyCommand}
           spellCheck={true} />
-
-        <Editor
-          editorState={editorState}
-          onChange={this.onChange}
-          handleKeyCommand={this.handleKeyCommand} />
 
         <pre>
           {json}
@@ -227,4 +209,3 @@ const InlineStyleControls = (props) => {
     </div>
   );
 };
-
