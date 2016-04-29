@@ -44,9 +44,20 @@
 }
 
 .Modal-content {
-    padding: 1em;
     background: #fff;
     max-width: 500px;
+}
+
+.Modal-header {
+    padding: 1em;
+}
+
+.Modal-header-tab {
+    padding-bottom: 0;
+}
+
+.Modal-body {
+    padding: 1em;
 }
 
 .Modal-actions {

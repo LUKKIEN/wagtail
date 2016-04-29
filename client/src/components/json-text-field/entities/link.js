@@ -29,9 +29,8 @@ export const Link = (props) => {
   );
 };
 
-export const linkDecorator = new CompositeDecorator([
-  {
+
+export const linkDecorator = {
     strategy: findLinkEntities,
     component: Link,
-  },
-]);
+}

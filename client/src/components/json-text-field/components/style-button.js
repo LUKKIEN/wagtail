@@ -26,3 +26,11 @@ class StyleButton extends Component {
 
 export default StyleButton;
 
+export function isActive(type, editorState, selection) {
+   const blockType = editorState
+    .getCurrentContent()
+    .getBlockForKey(selection.getStartKey())
+    .getType();
+
+    return type.style === blockType;
+}

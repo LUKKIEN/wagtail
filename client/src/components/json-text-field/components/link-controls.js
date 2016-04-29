@@ -18,6 +18,8 @@ class LinkControls extends Component {
     this.promptForLink = this._promptForLink.bind(this);
     this.confirmLink = this._confirmLink.bind(this);
     this.removeLink = this._removeLink.bind(this);
+    this.cancelLink = this._cancelLink.bind(this);
+
   }
 
   _promptForLink(e) {
@@ -77,6 +79,13 @@ class LinkControls extends Component {
     this.props.onRemoveLink();
   }
 
+  _cancelLink(e) {
+    e.preventDefault();
+    this.setState({
+      showURLInput: false,
+    });
+  }
+
   render() {
     const {editorState} = this.props;
     let selectionContainsLink = selectionContains(this.props.entityType, this.props.filterFn, editorState);
@@ -91,6 +100,7 @@ class LinkControls extends Component {
         value: this.state.urlValue,
         onKeyDown: this.onLinkInputKeyDown,
         confirmLink: this.confirmLink,
+        cancelLink: this.cancelLink,
         entity: this.state.entity
       };
 

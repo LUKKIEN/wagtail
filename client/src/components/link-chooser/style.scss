@@ -3,3 +3,41 @@
 .c-link-chooser {
     display: block;
 }
+
+
+.c-tabs {
+
+}
+
+.c-tabs__item {
+    display: inline-block;
+    padding: .5rem 1rem .4rem;
+    background: #eee;
+    margin-right: 1px;
+    cursor: pointer;
+    border-bottom: solid 1px #ccc;
+}
+
+.c-tabs__content {
+    margin: 1rem 0;
+    min-height: 10rem;
+}
+
+
+.c-tabs__item--selected {
+    background: #fff;
+    color: #333;
+    border-bottom-color: #fff;
+}
+
+
+
+.t-header {
+    &.-background {
+        background: #43B1B0;
+    }
+
+    .u-color-current {
+        color: #fff;
+    }
+}
