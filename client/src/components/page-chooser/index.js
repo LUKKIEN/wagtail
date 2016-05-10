@@ -14,7 +14,6 @@ class PageChooser extends Component {
       startNode: 2,
       currentNode: 2,
       path: [],
-      children: { items: [] },
       nodes: {},
       offset: 0,
     }
@@ -48,9 +47,15 @@ class PageChooser extends Component {
       path.splice(index, 1);
     }
 
-    $.get(`${PAGE_API}?child_of=${page}&limit=${maxResults}&offset=${offset}`, (data) => {
+    let api = this.constructUrl(PAGE_API, page, maxResults, offset);
+
+    $.get(api, (data) => {
       this.onGetPage(data, page, path);
     });
+  }
+
+  constructUrl(api, page, limit, offset) {
+    return `${api}?child_of=${page}&limit=${limit}&offset=${offset}`;
   }
 
   _onGetPage(data, page, path) {
