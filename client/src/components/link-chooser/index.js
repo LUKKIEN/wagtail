@@ -1,8 +1,7 @@
 import React, { Component, PropTypes } from 'react';
-import { keys } from 'config';
+import { keys, API } from 'config';
 
-const API = '/admin/api/v2beta/pages/';
-
+import PageChooser from 'components/page-chooser';
 
 
 class TabbedInterface extends Component {
@@ -148,85 +147,11 @@ class EmailChooser extends BasicChooser {
 }
 
 
-class PageChooser extends Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      startNode: 2,
-      currentNode: 2,
-      path: [2],
-      children: { items: [] },
-      nodes: {}
-    }
-
-    this.getPage = this._getPage.bind(this);
-    this.onGetPage = this._onGetPage.bind(this);
-  }
-
-  componentDidMount() {
-    this.getPage(this.state.startNode);
-  }
-
-  _getPage(page) {
-    let path = this.state.path;
-
-    if (path.indexOf(page) < 0) {
-      path.push(page)
-    } else {
-      path.splice(path.indexOf(page), 1);
-    }
-
-    this.setState({
-      currentNode: page,
-      path: path,
-    }, () => {
-      $.get(`${API}?child_of=${page}`, this.onGetPage);
-    })
-  }
-
-  _onGetPage(data) {
-    const nodes = this.state.nodes;
-    nodes[this.state.currentNode] = data;
-
-    this.setState({
-      nodes
-    });
-  }
-
-  render() {
-    const children = this.state.children;
-    const prev = this.state.path[this.state.path.length-1];
-
-    let nodes = [];
-
-    if (children) {
-      nodes = children.items.map(child => {
-        return <div onClick={this.getPage.bind(this, child.id)}>{child.title}</div>
-      });
-    }
-
-    let prevNode = null;
-
-    if (prev) {
-      prevNode = <div onClick={this.getPage.bind(this, prev)}>Back</div>
-    }
-
-    return (
-      <div>
-        {prevNode}
-        {nodes}
-      </div>
-    );
-  }
-}
-
 
 class MediaChooser extends Component {
   constructor(props) {
     super(props);
     this.state = {}
-
   }
 
   render() {
@@ -249,6 +174,14 @@ class ImageChooser extends MediaChooser {
 
 }
 
+
+
+const DEFAULT_CHOOSERS = [
+  { name: 'External Link', type: ExternalLinkChooser },
+  { name: 'Page', type: PageChooser },
+  { name: 'Document', type: DocumentChooser },
+  { name: 'Email', type: EmailChooser },
+];
 
 
 
@@ -278,12 +211,8 @@ class LinkChooser extends Component {
   }
 
   getChoosers() {
-    return [
-      { name: 'External Link', type: ExternalLinkChooser },
-      { name: 'Page', type: PageChooser },
-      { name: 'Document', type: DocumentChooser },
-      { name: 'Email', type: EmailChooser },
-    ];
+    let {choosers} = this.props;
+    return choosers ? choosers : DEFAULT_CHOOSERS;
   }
 
   render() {
@@ -322,5 +251,3 @@ class LinkChooser extends Component {
 }
 
 export default LinkChooser;
-
-
