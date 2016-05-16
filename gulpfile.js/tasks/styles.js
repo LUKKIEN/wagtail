@@ -5,6 +5,9 @@ var autoprefixer = require('gulp-autoprefixer');
 var simpleCopyTask = require('../lib/simplyCopy');
 var normalizePath = require('../lib/normalize-path');
 var gutil = require('gulp-util');
+var path = require('path');
+var sassGlob = require('gulp-sass-glob');
+
 
 var flatten = function(arrOfArr) {
     return arrOfArr.reduce(function(flat, more) {
@@ -12,9 +15,36 @@ var flatten = function(arrOfArr) {
     }, []);
 };
 
+var AUTOPREFIXER_CONFIG = {
+    browsers: ['last 3 versions', 'not ie <= 8'],
+    cascade: false
+};
+
+
 gulp.task('styles', ['styles:sass', 'styles:css']);
 
 gulp.task('styles:css', simpleCopyTask('css/**/*'));
+
+
+gulp.task('styles:components', function() {
+    var sourcePath = path.join('.', 'client', 'scss', 'style.scss');
+    var outPath = path.join('.', 'debug', 'css');
+
+    var SASS_OPTIONS = {
+        errLogToConsole: true,
+        outputStyle: 'expanded'
+    };
+
+    return gulp
+        .src(sourcePath)
+        .pipe(sassGlob())
+        .pipe(sass(SASS_OPTIONS).on('error', sass.logError))
+        .pipe(autoprefixer(AUTOPREFIXER_CONFIG))
+        .pipe(gulp.dest(outPath))
+        .on('error', gutil.log);
+});
+
+
 
 gulp.task('styles:sass', function () {
     // Wagtail Sass files include each other across applications,
@@ -26,25 +56,27 @@ gulp.task('styles:sass', function () {
     // its own Sass files that need to be compiled.
     var sources = flatten(config.apps.map(function(app) { return app.scssSources(); }));
 
+    var SASS_OPTIONS = {
+        errLogToConsole: true,
+        includePaths: includePaths,
+        outputStyle: 'expanded'
+    };
+
+    // e.g. wagtailadmin/scss/core.scss -> wagtailadmin/css/core.css
+    // Changing the suffix is done by Sass automatically
+    function rewritePath(file) {
+        return normalizePath(file.base)
+            .replace(
+                '/' + config.srcDir + '/',
+                '/' + config.destDir + '/'
+            )
+            .replace('/scss/', '/css/');
+    }
+
     return gulp.src(sources)
-        .pipe(sass({
-            errLogToConsole: true,
-            includePaths: includePaths,
-            outputStyle: 'expanded'
-        }).on('error', sass.logError))
-        .pipe(autoprefixer({
-            browsers: ['last 3 versions', 'not ie <= 8'],
-            cascade: false
-        }))
-        .pipe(gulp.dest(function(file) {
-            // e.g. wagtailadmin/scss/core.scss -> wagtailadmin/css/core.css
-            // Changing the suffix is done by Sass automatically
-            return normalizePath(file.base)
-                .replace(
-                    '/' + config.srcDir + '/',
-                    '/' + config.destDir + '/'
-                )
-                .replace('/scss/', '/css/');
-        }))
+        .pipe(sassGlob())
+        .pipe(sass(SASS_OPTIONS).on('error', sass.logError))
+        .pipe(autoprefixer(AUTOPREFIXER_CONFIG))
+        .pipe(gulp.dest(rewritePath))
         .on('error', gutil.log);
 });

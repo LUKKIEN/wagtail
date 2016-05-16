@@ -2,9 +2,15 @@
 // Wagtail CMS main stylesheet
 // =============================================================================
 
-@import 'objects';
-@import 'components';
-@import 'states/states';
-@import 'states/animations';
-@import 'utilities/utilities';
-@import 'themes/themes';
+// Stylesheet is ordered from most generic to most specific.
+@import 'objects/o.icon';
+
+// Components are globbed via `gulp-sass-glob`
+// Ensure components are encapsulated and can be loaded in any order.
+@import '../src/components/**/*.scss';
+
+// No need for the ruby-style _ prefix on files, as we're using gulp
+@import 'states/s.interactions';
+@import 'states/s.animations';
+@import 'utilities/u.utilities';
+@import 'themes/t.themes';
