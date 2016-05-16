@@ -4,16 +4,57 @@ import { keys, API } from 'config';
 const PAGE_API = `${API}pages/`;
 
 
+class Pagination extends Component {
+  render() {
+    const {totalResults, max, offset, next, back} = this.props;
+    const hasResults = totalResults > 0;
+
+    if (!hasResults) {
+      return null;
+    }
+
+    return (
+      <div>
+        {(offset > 0 && totalResults > max) ? <span className='button' onClick={back}>Back</span> : null}
+        {(max + offset < totalResults) ? <span className='button' onClick={next}>Next</span> : null}
+      </div>
+    );
+  }
+}
+
+
+function _buildTree(startNode, cb) {
+  let apiPage = `${PAGE_API}${startNode}`;
+  let path = [];
+
+  function processNode(data) {
+    path.push(data);
+
+    if (data.meta.parent) {
+        $.get(data.meta.parent.meta.detail_url, processNode);
+    } else {
+      cb(path.reverse());
+    }
+  }
+
+  $.get(apiPage, processNode);
+  return path;
+}
+
+
+
 class PageChooser extends Component {
 
   constructor(props) {
     super(props);
 
+    let start = 4;
+
     this.state = {
       defaultMaxResults: 5,
-      startNode: 2,
-      currentNode: 2,
+      startNode: start,
       path: [],
+      nodePath: [],
       nodes: {},
       offset: 0,
     }
@@ -24,10 +65,24 @@ class PageChooser extends Component {
     this.getMaxResults = this._getMaxResults.bind(this);
     this.next = this._next.bind(this);
     this.back = this._back.bind(this);
+    this.pop = this._pop.bind(this);
   }
 
   componentDidMount() {
-    this.getPage(this.state.startNode);
+    let {startNode} = this.state;
+
+    this.setState({
+      currentNode: startNode,
+    }, () => {
+      _buildTree(startNode, (rootPath) => {
+        this.setState({
+          nodePath: rootPath,
+          path: rootPath.map(item => { return item.id })
+        }, () => {
+          this.getPage(startNode);
+        })
+      });
+    });
   }
 
   _getMaxResults() {
@@ -36,7 +91,7 @@ class PageChooser extends Component {
     return maxResults ? maxResults : defaultMaxResults;
   }
 
-  _getPage(page) {
+  _getPage(page, newOffset) {
     let {path, offset} = this.state;
     let index = path.indexOf(page);
     let maxResults = this.getMaxResults();
@@ -47,24 +102,31 @@ class PageChooser extends Component {
       path.splice(index, 1);
     }
 
+    if (typeof(newOffset) === 'number') {
+      offset = newOffset
+    }
+
     let api = this.constructUrl(PAGE_API, page, maxResults, offset);
 
     $.get(api, (data) => {
-      this.onGetPage(data, page, path);
+      this.onGetPage(data, page, path, newOffset);
     });
+
   }
 
   constructUrl(api, page, limit, offset) {
     return `${api}?child_of=${page}&limit=${limit}&offset=${offset}`;
   }
 
-  _onGetPage(data, page, path) {
+  _onGetPage(data, page, path, newOffset) {
     const nodes = this.state.nodes;
+    let offset = typeof newOffset === 'number' ? newOffset : this.state.offset;
     nodes[page] = data;
 
     this.setState({
       nodes,
       path,
+      offset,
       currentNode: page,
     });
   }
@@ -104,35 +166,58 @@ class PageChooser extends Component {
     })
   }
 
+  _pop() {
+    const {path} = this.state;
+    let previous = path.pop();
+    previous = path.pop();
+    this.getPage(previous, 0);
+  }
+
+  onPick(id) {
+    this.props.onUpdate({
+      type: 'page',
+      link: id,
+      target: 'default'
+    }, true);
+  }
+
   render() {
     const {offset, path} = this.state;
     const max = this.getMaxResults();
-    const prev = path[path.length-1];
-    const children = this.getChildrenOf(prev);
+    const current = path[path.length-1];
+    const children = this.getChildrenOf(current);
+    const prev = path[path.length-2];
 
     let nodes = [];
     let totalResults = 0;
 
     if (children) {
       nodes = children.items.map(child => {
-        return <div onClick={this.getPage.bind(this, child.id)}>{child.title}</div>
+        return (
+          <div>
+            {child.title}
+            {child.meta.children.count ? <span onClick={this.getPage.bind(this, child.id, 0)}>[ children ]</span> : null}
+            <span onClick={this.onPick.bind(this, child.id)}>[ select ]</span>
+          </div>
+        );
       });
 
       totalResults = children.meta.total_count;
     }
 
-    let prevNode = null;
-
-    if (prev && !this.isAtRoot()) {
-      prevNode = <div onClick={this.getPage.bind(this, prev)}>Back</div>
+    let paginationProps = {
+      totalResults,
+      max,
+      offset,
+      next: this.next,
+      back: this.back,
     }
 
     return (
       <div>
-        {prevNode}
+        {this.isAtRoot() ? null : <div onClick={this.pop}>.. Up</div>}
         {nodes}
-        {(totalResults > 0 && max + offset < totalResults) ? <div onClick={this.next}>Next</div> : null}
-        {(totalResults > 0 && offset > 0) ? <div onClick={this.back}>Back</div> : null}
+        <Pagination {...paginationProps} />
       </div>
     );
   }

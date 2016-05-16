@@ -194,6 +194,7 @@ class LinkChooser extends Component {
     };
     this.onConfirm = this._onConfirm.bind(this);
     this.onCancel = this._onCancel.bind(this);
+    this.onUpdate = this._onUpdate.bind(this);
   }
 
   _onConfirm(e) {
@@ -206,8 +207,14 @@ class LinkChooser extends Component {
     this.props.cancelLink(e);
   }
 
-  onUpdate(link) {
-    this.setState({link});
+  _onUpdate(link, close = false) {
+    this.setState({
+      link
+    }, () => {
+      if (close) {
+        this.props.confirmLink(this.state.link);
+      }
+    });
   }
 
   getChoosers() {

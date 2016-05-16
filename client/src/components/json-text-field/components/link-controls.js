@@ -19,7 +19,6 @@ class LinkControls extends Component {
     this.confirmLink = this._confirmLink.bind(this);
     this.removeLink = this._removeLink.bind(this);
     this.cancelLink = this._cancelLink.bind(this);
-
   }
 
   _promptForLink(e) {
@@ -53,13 +52,8 @@ class LinkControls extends Component {
 
   _confirmLink(urlValue) {
     const {editorState} = this.props;
-
-    const props = {
-      url: urlValue,
-      page: null
-    }
-
-    const entityKey = Entity.create(this.props.entityType, 'MUTABLE', props);
+    const entityData = urlValue;
+    const entityKey = Entity.create(this.props.entityType, 'MUTABLE', entityData);
 
     let newEditorState = RichUtils.toggleLink(
       editorState,

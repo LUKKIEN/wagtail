@@ -12,6 +12,8 @@ from wagtail.wagtailcore import fields as wagtailcore_fields
 
 from .utils import get_full_url, pages_for_site
 
+from wagtail.wagtailcore.models import Page
+
 
 def get_object_detail_url(context, model, pk):
     url_path = context['router'].get_object_detail_urlpath(model, pk)
@@ -161,6 +163,11 @@ class PageParentField(RelatedField):
         site_pages = pages_for_site(self.context['request'].site)
         if site_pages.filter(id=parent.id).exists():
             return parent
+        else:
+            # Required for Admin API
+            if Page.objects.filter(id=parent.id).exists():
+                if parent.id > 1:
+                    return parent
 
 
 class ChildRelationField(Field):
